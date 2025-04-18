@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Editor & OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# dotenv
+.env
+.env.*
+
+# Pytest cache
+.pytest_cache/
+
+# Mypy, Coverage, Pyre, etc.
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.pyre/
+
+# Poetry
+poetry.lock
+# or if you use pipenv
+Pipfile.lock
+
+# SQLite (if using local DB for dev)
+*.db
+
+# Uvicorn or Gunicorn reload artifacts
+*.pid
