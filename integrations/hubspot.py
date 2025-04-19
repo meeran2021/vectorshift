@@ -14,25 +14,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 1) Required OAuth2 credentials
 CLIENT_ID     = os.getenv("HUBSPOT_CLIENT_ID")
 CLIENT_SECRET = os.getenv("HUBSPOT_CLIENT_SECRET")
 if not CLIENT_ID or not CLIENT_SECRET:
     raise RuntimeError("Missing HUBSPOT_CLIENT_ID or HUBSPOT_CLIENT_SECRET in environment variables")
 
-# 2) Redirect URI (must exactly match your app settings)
 REDIRECT_URI = os.getenv(
     "HUBSPOT_REDIRECT_URI",
     "http://localhost:8000/integrations/hubspot/oauth2callback"
 )
 
-# 3) Scopes: define in .env as e.g.
-#    HUBSPOT_SCOPES="crm.objects.contacts.read crm.objects.companies.read"
 SCOPES_RAW = os.getenv(
     "HUBSPOT_SCOPES",
-    "oauth"
+    "crm.objects.appointments.read crm.objects.courses.read crm.objects.companies.read crm.objects.contacts.read"
+    # "crm.objects.appointments.read%20crm.objects.courses.read%20crm.objects.companies.read%20crm.objects.contacts.read"
 )
-
+# https://app-na2.hubspot.com/oauth/authorize?client_id=06cace6e-ca22-4d22-a869-532bc2bbb69a&redirect_uri=http://localhost:8000/integrations/hubspot/oauth2callback&scope=crm.objects.appointments.read%20oauth%20crm.objects.courses.read%20crm.objects.companies.read%20crm.objects.contacts.read
 # URL‑encode once
 ENCODED_REDIRECT_URI = urllib.parse.quote_plus(REDIRECT_URI)
 ENCODED_SCOPES      = urllib.parse.quote_plus(SCOPES_RAW)
@@ -42,7 +39,7 @@ AUTHORIZATION_URL = (
     "https://app.hubspot.com/oauth/authorize"
     f"?client_id={CLIENT_ID}"
     f"&redirect_uri={ENCODED_REDIRECT_URI}"
-    f"&scope={ENCODED_SCOPES}"
+    r"&scope="+ENCODED_SCOPES
 )
 
 async def authorize_hubspot(user_id, org_id):
