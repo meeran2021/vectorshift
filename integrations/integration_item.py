@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 class IntegrationItem:
     def __init__(
@@ -18,6 +18,7 @@ class IntegrationItem:
         delta: Optional[str] = None,
         drive_id: Optional[str] = None,
         visibility: Optional[bool] = True,
+        extra_props: Optional[Dict[str, Any]] = None,
     ):
         self.id = id
         self.type = type
@@ -33,3 +34,4 @@ class IntegrationItem:
         self.delta = delta
         self.drive_id = drive_id
         self.visibility = visibility
+        self.extra_props = extra_props or {}

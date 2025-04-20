@@ -22,7 +22,6 @@ encoded_client_id_secret = base64.b64encode(
   f"{CLIENT_ID}:{CLIENT_SECRET}".encode()
 ).decode()
 
-print("Client id:",CLIENT_ID, CLIENT_SECRET)
 REDIRECT_URI = 'http://localhost:8000/integrations/notion/oauth2callback'
 authorization_url = f'https://api.notion.com/v1/oauth/authorize?client_id={CLIENT_ID}&response_type=code&owner=user&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fintegrations%2Fnotion%2Foauth2callback'
 

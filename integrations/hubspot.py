@@ -12,6 +12,11 @@ from integrations.integration_item import IntegrationItem
 from redis_client import add_key_value_redis, get_value_redis, delete_key_redis
 from dotenv import load_dotenv
 
+from datetime import datetime
+
+def parse_datetime(dt_str: str) -> datetime:
+    return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+
 load_dotenv()
 
 CLIENT_ID     = os.getenv("HUBSPOT_CLIENT_ID")
@@ -27,14 +32,12 @@ REDIRECT_URI = os.getenv(
 SCOPES_RAW = os.getenv(
     "HUBSPOT_SCOPES",
     "crm.objects.appointments.read crm.objects.courses.read crm.objects.companies.read crm.objects.contacts.read"
-    # "crm.objects.appointments.read%20crm.objects.courses.read%20crm.objects.companies.read%20crm.objects.contacts.read"
 )
-# https://app-na2.hubspot.com/oauth/authorize?client_id=06cace6e-ca22-4d22-a869-532bc2bbb69a&redirect_uri=http://localhost:8000/integrations/hubspot/oauth2callback&scope=crm.objects.appointments.read%20oauth%20crm.objects.courses.read%20crm.objects.companies.read%20crm.objects.contacts.read
 # URL‑encode once
 ENCODED_REDIRECT_URI = urllib.parse.quote_plus(REDIRECT_URI)
 ENCODED_SCOPES      = urllib.parse.quote_plus(SCOPES_RAW)
 
-# Build the base authorization URL
+# base authorization URL
 AUTHORIZATION_URL = (
     "https://app.hubspot.com/oauth/authorize"
     f"?client_id={CLIENT_ID}"
@@ -129,15 +132,14 @@ def create_integration_item_metadata_object(response_json) -> IntegrationItem:
     """
     Map a HubSpot CRM object into our IntegrationItem.
     """
+    print("response_json Object", response_json)
     obj_id = response_json.get("id")
     props  = response_json.get("properties", {})
 
-    # Derive a human‑readable name
     name = props.get("name") or \
            f"{props.get('firstname','')} {props.get('lastname','')}".strip() or \
            None
 
-    # If 'archived' is False, use the object type; else mark as 'archived'
     obj_type = response_json.get("archived") is False and \
                response_json.get("type", "object") or "archived"
 
@@ -145,13 +147,19 @@ def create_integration_item_metadata_object(response_json) -> IntegrationItem:
         id=obj_id,
         name=name,
         type=obj_type,
-        parent_id=None
+        parent_id=None,
+        creation_time=parse_datetime(response_json["createdAt"]),
+        last_modified_time=parse_datetime(response_json["updatedAt"]),
+        url=None,
+        children=None,
+        extra_props={"email": props.get("email")}
     )
 
 async def get_items_hubspot(credentials) -> list[IntegrationItem]:
     """
     Example: paginate through Contacts and return them as IntegrationItems.
     """
+    # print("creds:", credentials)
     creds = credentials if isinstance(credentials, dict) else json.loads(credentials)
     token = creds.get("access_token")
     if not token:
@@ -168,8 +176,11 @@ async def get_items_hubspot(credentials) -> list[IntegrationItem]:
             raise HTTPException(resp.status_code, f"Error fetching HubSpot items: {resp.text}")
 
         data = resp.json()
+        # print("DAta:", data)
         for obj in data.get("results", []):
+            print("item before", items)
             items.append(create_integration_item_metadata_object(obj))
+            print("item after", items)
 
         # follow pagination link if present
         url     = data.get("paging", {}).get("next", {}).get("link")
@@ -177,29 +188,3 @@ async def get_items_hubspot(credentials) -> list[IntegrationItem]:
 
     return items
 
-
-
-
-# # slack.py
-
-# from fastapi import Request
-
-# async def authorize_hubspot(user_id, org_id):
-#     # TODO
-#     pass
-
-# async def oauth2callback_hubspot(request: Request):
-#     # TODO
-#     pass
-
-# async def get_hubspot_credentials(user_id, org_id):
-#     # TODO
-#     pass
-
-# async def create_integration_item_metadata_object(response_json):
-#     # TODO
-#     pass
-
-# async def get_items_hubspot(credentials):
-#     # TODO
-#     pass
